@@ -1,0 +1,27 @@
+Kumiho Server — Community Edition
+Copyright (c) 2026 Kumiho. All rights reserved.
+
+This repository distributes the Kumiho Server Community Edition as prebuilt,
+object-code-only software. It is NOT open-source software, and no open-source
+license is granted by this repository.
+
+Your use of the Kumiho Server Community Edition — including the kumiho_server
+binaries and all other materials in this repository (the installer scripts,
+documentation, and checksums) — is governed solely by the Community Edition
+End User License Agreement in EULA.md, which is the full and controlling
+license.
+
+Summary (the EULA controls in case of any conflict): the Community Edition is
+licensed for single-user, local, loopback-only use — including for personal,
+evaluation, development, internal business, commercial, or production purposes.
+It may NOT be operated as a hosted, shared, multi-user, multi-tenant, networked,
+or service-provider deployment; may not be redistributed, resold, sublicensed,
+reverse engineered, or modified; and its technical restrictions (loopback-only
+operation, connection/concurrency limits, deployment-mode controls) may not be
+circumvented. Multi-user, hosted, networked, or production-backend use requires
+a separate written commercial agreement with Kumiho.
+
+All rights not expressly granted in the EULA are reserved.
+
+Full terms: ./EULA.md
+Contact: support@kumiho.io
