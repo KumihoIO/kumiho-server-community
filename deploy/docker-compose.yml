@@ -1,0 +1,65 @@
+# Local databases for kumiho-server Community Edition.
+#
+# Runs Neo4j (required) + Redis (optional, event streaming). The kumiho-server
+# binary itself runs on the HOST (loopback only) — see ../deploy/README.md. CE
+# rejects non-loopback peers, so a containerized server is not reachable from a
+# host-native client; the supported layout is DBs-in-Docker + server-on-host.
+#
+# Ports are published to 127.0.0.1 only: the databases stay on loopback and are
+# never exposed to the LAN. The PUBLISHED ports come from .env so they match the
+# ports you entered in `kumiho_server onboard` (the server dials those on
+# 127.0.0.1); the container-internal ports stay 7687 / 6379.
+#
+#   docker compose up -d      # start Neo4j + Redis
+#   docker compose ps         # check health
+#   docker compose down       # stop (data kept in named volumes)
+#   docker compose down -v    # stop AND delete all data
+
+services:
+  neo4j:
+    image: neo4j:5
+    container_name: kumiho-ce-neo4j
+    restart: unless-stopped
+    ports:
+      # host port = the Neo4j port from onboarding (KUMIHO_NEO4J_PORT); default 7687.
+      - "127.0.0.1:${KUMIHO_NEO4J_PORT:-7687}:7687"   # Bolt
+      - "127.0.0.1:7474:7474"                         # Browser UI at http://127.0.0.1:7474
+    environment:
+      # Must match the Neo4j password you entered in `kumiho_server onboard`.
+      # Applied on FIRST volume init; change inside Neo4j or `down -v` to re-key.
+      NEO4J_AUTH: "neo4j/${KUMIHO_NEO4J_PASSWORD:-kumihotest}"
+      # Referenced only by the healthcheck below (not a Neo4j setting).
+      HC_PW: "${KUMIHO_NEO4J_PASSWORD:-kumihotest}"
+      # Conservative caps for a local single-user box.
+      NEO4J_server_memory_heap_max__size: 512m
+      NEO4J_server_memory_pagecache_size: 512m
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$$HC_PW\" 'RETURN 1' >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  redis:
+    image: redis:7
+    container_name: kumiho-ce-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      # host port = the Redis port from onboarding (KUMIHO_REDIS_PORT); default 6379.
+      - "127.0.0.1:${KUMIHO_REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  redis-data:
